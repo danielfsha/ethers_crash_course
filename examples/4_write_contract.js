@@ -1,40 +1,41 @@
-const { ethers } = require("ethers");
+const { ethers } = require('ethers')
 
-const INFURA_ID = ''
-const provider = new ethers.providers.JsonRpcProvider(`https://kovan.infura.io/v3/${INFURA_ID}`)
+const INFURA_KEY = ''
+const provider = new ethers.providers.JsonRpcProvider(
+    `https://sepolia.infura.io/v3/${INFURA_KEY}`
+)
 
-const account1 = '' // Your account address 1
-const account2 = '' // Your account address 2
+const sender_address = "0x635B49dd6425DB47aD056AA0c2232c0214B93D9a"
+const recipient_address = "0x73BCEb1Cd57C711feaC4224D062b0F6ff338501e"
 
-const privateKey1 = '' // Private key of account 1
-const wallet = new ethers.Wallet(privateKey1, provider)
+const sender_private_key = "3d184a5279aaa8c5ccd44b20013ba72b46459f0aa147645e242be3ebc2b646c5"
 
-const ERC20_ABI = [
+
+// token info
+const address = '0x779877A7B0D9E8603169DdbD7836e478b4624789'
+const ABI = [
     "function balanceOf(address) view returns (uint)",
     "function transfer(address to, uint amount) returns (bool)",
-];
+]
 
-const address = ''
-const contract = new ethers.Contract(address, ERC20_ABI, provider)
+const main = async() => {
+    const wallet = new ethers.Wallet(sender_private_key, provider)
+    const contract = new ethers.Contract(address, ABI, provider)
 
-const main = async () => {
-    const balance = await contract.balanceOf(account1)
-
-    console.log(`\nReading from ${address}\n`)
-    console.log(`Balance of sender: ${balance}\n`)
+    const balance = await contract.balanceOf(sender_address)
+    console.log('Reading from', sender_address)
+    console.log("Balance: ", ethers.utils.formatEther(balance))
 
     const contractWithWallet = contract.connect(wallet)
-
-    const tx = await contractWithWallet.transfer(account2, balance)
+    const tx = await contractWithWallet.transfer(recipient_address, balance)
     await tx.wait()
 
     console.log(tx)
 
-    const balanceOfSender = await contract.balanceOf(account1)
-    const balanceOfReciever = await contract.balanceOf(account2)
-
-    console.log(`\nBalance of sender: ${balanceOfSender}`)
-    console.log(`Balance of reciever: ${balanceOfReciever}\n`)
-}
+    const senderBalanceAfterTx = await contract.balanceOf(sender_address)
+    const recipientBalanceAfterTx = await contract.balanceOf(recipient_address)
+    console.log('Sender balance after TX: ', ethers.utils.formatEther(senderBalanceAfterTx))
+    console.log('Recipient balance after TX: ', ethers.utils.formatEther(recipientBalanceAfterTx))
+} 
 
 main()
